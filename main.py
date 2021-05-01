@@ -155,8 +155,9 @@ def getTestList(dataset, size):
 
 
 def test(test_list, total_tests, k, choosen_distance, p=0):
-    if total_tests > test_list.size:
-        total_tests = test_list.size
+    if total_tests > len(test_list):
+        total_tests = len(test_list)
+        print("total_tests > test_list.size -> total_tests = test_list.size")
     hits = 0
     errors = 0
     print("Test: " + str(total_tests) + " tests using k = " + str(k) + " and " + str(choosen_distance) + " distance")
@@ -199,7 +200,7 @@ dataset = dataset.drop(dataset[dataset.index > len(dataset) - test_list_size].in
 # Assinatura da função de testes (Para usar a distância de minkowski, é necessário informar p):
 #   def test(testList, total_tests, k, choosen_distance, p = 0):
 
-test(testList, 10, 1, distance_type[0], 3)
+test(testList, 1001, 1, distance_type[0], 3)
 test(testList, 10, 1, distance_type[1])
 test(testList, 10, 1, distance_type[2])
 test(testList, 10, 100, distance_type[0], 3)

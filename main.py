@@ -1,26 +1,18 @@
 import random
-from unicodedata import numeric
-
 import pandas
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import spatial
-from numpy import dot
-from numpy.linalg import norm
-from collections import Counter
 
 
-
-def readDataset():
+def read_dataset():
     return pandas.read_csv("Dataset_1.csv")
 
 
 separator = "--------------------------------------------------------------------------"
 
 
-def printDataset(dataset, name):
+def print_dataset(name):
     print(separator)
     print(name)
     print()
@@ -29,23 +21,23 @@ def printDataset(dataset, name):
     print()
 
 
-def preProcessing(dataset):
+def pre_processing():
     # Como apenas a coluna target possui strings, ela recebe um tratamento diferente
     for column in dataset.columns:
-        if (column == "target"):
+        if column == "target":
             mode = dataset[column].mode()
             for i in range(len(dataset)):
-                if (dataset[column].at[i] == ""):
+                if dataset[column].at[i] == "":
                     dataset[column].at[i] = mode
         else:
             mean = dataset[column].mean()
             for i in range(len(dataset)):
-                if (dataset[column].at[i] == 0.0):
+                if dataset[column].at[i] == 0.0:
                     dataset[column].at[i] = mean
     return dataset
 
 
-def normalize(dataset):
+def normalize():
     # Removemos a coluna target para fazer a normalização porque ela possui apenas strings
     normalized = dataset.drop("target", 1)
     normalized = ((normalized - normalized.min()) / (normalized.max() - normalized.min()))
@@ -53,12 +45,13 @@ def normalize(dataset):
     return normalized
 
 
-def correlation_matrix(dataset):
-    sns.heatmap(dataset.corr(), annot=True, fmt='.2f', cmap='Blues')
-    plt.title('Correlação entre variáveis do dataset')
+def correlation_matrix():
+    sns.heatmap(dataset.corr(), annot=True, fmt=".2f", cmap="Blues")
+    plt.title("Correlação entre variáveis do dataset")
     plt.show()
 
-def exploratoryAnalysis(dataset):
+
+def exploratory_analysis():
     print(separator)
     print("Análise Exploratória")
     print()
@@ -77,15 +70,14 @@ def exploratoryAnalysis(dataset):
             print("Var: " + str(dataset[column].var()))
             print()
     print(separator)
-    correlation_matrix(dataset)
 
 
 def minkowski_distance(query, row, columns, p):
-    subtracao = query - row[0:(columns - 1)]
-    pow1 = subtracao ** p
-    soma = sum(pow1)
-    pow2 = soma ** (1 / p)
-    return pow2
+    subtraction = query - row[0:(columns - 1)]
+    internal_pow = subtraction ** p
+    sumatory = sum(internal_pow)
+    external_pow = sumatory ** (1 / p)
+    return external_pow
 
 
 def euclidian_distance(query, row, columns):
@@ -124,10 +116,7 @@ def remove_irrelevant_columns(dataset, query):
     return dataset, query
 
 
-def printing(text, variable, knn):
-    print("Linha: " + text + ": " + str(variable) + " - Resultado: " + knn)
-
-def knn(dataset, query, distance_type, k = 1, p = 2):
+def knn(dataset, query, distance_type, k=1, p=2):
     dataset, query = remove_irrelevant_columns(dataset, query)
 
     if k >= len(dataset):
@@ -156,45 +145,64 @@ def knn(dataset, query, distance_type, k = 1, p = 2):
     return unique_classes[votes_per_class.index(max(votes_per_class))]
 
 
-# Lê e imprime o dataset original
-dataset = readDataset()
-# printDataset(dataset, "Dataset")
+def getTestList(dataset, size):
+    global list_last_position
+    list_last_position = len(dataset) - 1
+    global list_first_position
+    list_first_position = list_last_position - test_list_size + 1
+    testList = dataset.drop(dataset[dataset.index < len(dataset) - size].index)
+    return testList
 
-# Faz o pré-processamento dos dados
-dataset = preProcessing(dataset)
 
-# Normaliza o dataset usando a re-escala linear e imprime ele
-dataset = normalize(dataset)
-# printDataset(dataset, "Dataset Normalizado")
-
-# Mostra a análise exploratória dos dados
-# exploratoryAnalysis(dataset)
-
-def test(total_tests, k, choosen_distance, p = 0):
+def test(testList, total_tests, k, choosen_distance, p=0):
     hits = 0
     errors = 0
     print("Test: " + str(total_tests) + " tests using k = " + str(k) + " and " + str(choosen_distance) + " distance")
     for i in range(total_tests):
         # Selecao aleatoria de linha pra teste
-        random_number = random.randint(0, 5893)
-        query = dataset.loc[random_number].tolist()
+        random_number = random.randint(list_first_position, list_last_position)
+        query = testList.loc[random_number].tolist()
         query.pop(len(query) - 1)
-        if dataset.loc[random_number][13] == knn(dataset, query, choosen_distance, k, p):
+        if testList.loc[random_number][13] == knn(dataset, query, choosen_distance, k, p):
             hits += 1
         else:
             errors += 1
-    print("Hits = " + str(hits) + " - Errors: " + str(errors) + " - Average: " + str((hits / (hits + errors)) * 100) + "%")
+    print("Hits = " + str(hits) + " - Errors: " + str(errors) + " - Average: " + str(
+        (hits / (hits + errors)) * 100) + "%")
     print()
 
 
-distance_type = ["minkowski", "euclidian", "manhattan"]
+# Lê e imprime o dataset original
+dataset = read_dataset()
 
-test(10, 1, distance_type[0], 3)
-test(10, 1, distance_type[1])
-test(10, 1, distance_type[2])
-test(10, 100, distance_type[0], 3)
-test(10, 100, distance_type[1])
-test(10, 100, distance_type[2])
-test(100, 100, distance_type[0], 3)
-test(100, 100, distance_type[1])
-test(100, 100, distance_type[2])
+# Faz o pré-processamento dos dados
+dataset = pre_processing()
+
+# Normaliza o dataset usando a re-escala linear e imprime ele
+dataset = normalize()
+
+# Mostra a análise exploratória dos dados
+#exploratory_analysis()
+correlation_matrix()
+
+# Tipos de distancias implementadas e tamanho da lista de testes (obs: a lista de testes é removida do fim do dataset)
+distance_type = ["minkowski", "euclidian", "manhattan"]
+test_list_size = 100
+
+# Cria a lista de testes a partir do dataset, removendo test_list_size elementos do fim do dataset
+testList = getTestList(dataset, test_list_size)
+dataset = dataset.drop(dataset[dataset.index > len(dataset) - test_list_size].index)
+
+# Cria alguns testes alternando o número de testes, k e tipo de distância, avaliando a precisão do algoritmo
+# Assinatura da função de testes (Para usar a distância de minkowski, é necessário informar p):
+#   def test(testList, total_tests, k, choosen_distance, p = 0):
+
+test(testList, 10, 1, distance_type[0], 3)
+test(testList, 10, 1, distance_type[1])
+test(testList, 10, 1, distance_type[2])
+test(testList, 10, 100, distance_type[0], 3)
+test(testList, 10, 100, distance_type[1])
+test(testList, 10, 100, distance_type[2])
+test(testList, 100, 100, distance_type[0], 3)
+test(testList, 100, 100, distance_type[1])
+test(testList, 100, 100, distance_type[2])

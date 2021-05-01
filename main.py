@@ -1,6 +1,8 @@
 import pandas
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def readDataset():
     return pandas.read_csv("Dataset_1.csv")
@@ -57,7 +59,7 @@ def exploratoryAnalysis(dataset):
             print()
     print(separator)
 
-def knn(dataset, query, k=1):
+def knn(dataset, query, variables, k = 1):
     if k >= len(dataset):
         k = len(dataset) - 1
     columns = dataset.columns.size
@@ -89,6 +91,10 @@ printDataset(dataset, "Dataset Normalizado")
 # Mostra a análise exploratória dos dados
 exploratoryAnalysis(dataset)
 
-query = [78.0, 9.81147629156, 9.75889547269, 9.84941095639, 0.0146255073331, 0.00165077522136, 0.0,
-         0.003533082558530001, 0.000736963641413, 0.0, 0.0, 0.0, 0.0]
-print(knn(dataset, query, 10))
+sns.heatmap(dataset.corr(), annot = True, fmt = '.2f', cmap='Blues')
+plt.title('Correlação entre variáveis do dataset')
+plt.show()
+
+query = [78.0, 9.81147629156, 9.75889547269, 9.84941095639, 0.0146255073331, 0.00165077522136, 0.0, 0.003533082558530001, 0.000736963641413, 0.0, 0.0, 0.0, 0.0]
+variables = ["accelerometer#mean", "gyroscope#mean"]
+print(knn(dataset, query, variables, 10))

@@ -1,4 +1,4 @@
-time,android.sensor.accelerometer#mean,android.sensor.accelerometer#min,android.sensor.accelerometer#max,android.sensor.accelerometer#std,android.sensor.gyroscope#mean,android.sensor.gyroscope#min,android.sensor.gyroscope#max,android.sensor.gyroscope#std,sound#mean,sound#min,sound#max,sound#std,target
+time,accelerometer#mean,accelerometer#min,accelerometer#max,accelerometer#std,gyroscope#mean,gyroscope#min,gyroscope#max,gyroscope#std,sound#mean,sound#min,sound#max,sound#std,target
 78.0,9.81147629156,9.75889547269,9.84941095639,0.0146255073331,0.00165077522136,0.0,0.003533082558530001,0.000736963641413,0.0,0.0,0.0,0.0,Still
 145.0,9.93920678262,7.70743742161,17.1466311902,1.7759442967,0.0363257142488,0.0116693879272,0.059387896024199985,0.0202897002181,89.20021019100002,89.06514335,89.3352770319,0.191013358299,Car
 150.0,9.82717783631,9.80481712742,9.84926211274,0.0111991059917,0.00152461653211,0.0,0.0026093544661,0.000712700740663,0.0,0.0,0.0,0.0,Still

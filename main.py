@@ -3,6 +3,7 @@ import pandas
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sys
 
 
 def read_dataset():
@@ -154,16 +155,18 @@ def getTestList(dataset, size):
     return testList
 
 
-def test(testList, total_tests, k, choosen_distance, p=0):
+def test(test_list, total_tests, k, choosen_distance, p=0):
+    if total_tests > test_list.size:
+        total_tests = test_list.size
     hits = 0
     errors = 0
     print("Test: " + str(total_tests) + " tests using k = " + str(k) + " and " + str(choosen_distance) + " distance")
+    random_number = random.sample(test_list.index.tolist(), total_tests)
     for i in range(total_tests):
         # Selecao aleatoria de linha pra teste
-        random_number = random.randint(list_first_position, list_last_position)
-        query = testList.loc[random_number].tolist()
+        query = test_list.loc[random_number[i]].tolist()
         query.pop(len(query) - 1)
-        if testList.loc[random_number][13] == knn(dataset, query, choosen_distance, k, p):
+        if test_list.loc[random_number[i]][13] == knn(dataset, query, choosen_distance, k, p):
             hits += 1
         else:
             errors += 1

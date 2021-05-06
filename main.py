@@ -57,7 +57,7 @@ def exploratory_analysis():
     print()
     for column in dataset.columns:
         # Como apenas a coluna target possui strings, ela recebe um tratamento diferente
-        if (column == "target"):
+        if column == "target":
             mode = dataset[column].mode()
             print("Atributo: " + column)
             print("Mode: " + mode[0])
@@ -145,13 +145,13 @@ def knn(dataset, query, distance_type, k=1, p=2):
     return unique_classes[votes_per_class.index(max(votes_per_class))]
 
 
-def getTestList(dataset, size):
+def get_test_list(dataset, size):
     global list_last_position
     list_last_position = len(dataset) - 1
     global list_first_position
     list_first_position = list_last_position - test_list_size + 1
-    testList = dataset.drop(dataset[dataset.index < len(dataset) - size].index)
-    return testList
+    test_list = dataset.drop(dataset[dataset.index < len(dataset) - size].index)
+    return test_list
 
 
 def test(test_list, total_tests, k, choosen_distance, p=0):
@@ -185,7 +185,7 @@ dataset = pre_processing()
 dataset = normalize()
 
 # Mostra a análise exploratória dos dados
-#exploratory_analysis()
+# exploratory_analysis()
 correlation_matrix()
 
 # Tipos de distancias implementadas e tamanho da lista de testes (obs: a lista de testes é removida do fim do dataset)
@@ -193,7 +193,7 @@ distance_type = ["minkowski", "euclidian", "manhattan"]
 test_list_size = 100
 
 # Cria a lista de testes a partir do dataset, removendo test_list_size elementos do fim do dataset
-testList = getTestList(dataset, test_list_size)
+testList = get_test_list(dataset, test_list_size)
 dataset = dataset.drop(dataset[dataset.index > len(dataset) - test_list_size].index)
 
 # Cria alguns testes alternando o número de testes, k e tipo de distância, avaliando a precisão do algoritmo

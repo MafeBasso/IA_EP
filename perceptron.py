@@ -157,9 +157,12 @@ def perceptron(dataset, fnet, eta = 0.1, threshold = 0.001):
     X = dataset.iloc[:,:-1]
     Y = dataset.iloc[:,columns - 1:columns]
     weights = numpy.random.uniform(-0.5, 0.5, X.columns.size + 1)
+    print("Pesos iniciais: " + str(weights))
 
+    j = 0
     sqerror = 2 * threshold
     while (sqerror > threshold):
+        j += 1
         sqerror = 0
         for i in range(len(X.index)):
             input = X.loc[i]
@@ -176,6 +179,8 @@ def perceptron(dataset, fnet, eta = 0.1, threshold = 0.001):
 
             weights = weights - eta * dE2
         sqerror = sqerror / len(X.index)
+    print("Pesos finais: " + str(weights.to_numpy()))
+    print("Épocas: " + str(j))
     return weights
 
 def perceptron_test_1(x, weights, fnet = f):
@@ -184,7 +189,7 @@ def perceptron_test_1(x, weights, fnet = f):
 
 def perceptron_test_2(x, weights, fnet = f):
     x.append(1)
-    return f2(net = sum(weights * x))
+    return "Escuro (-1)" if f2(net = sum(weights * x)) == -1 else "Claro (1)"
 
 # Lê e imprime o dataset original
 # print_dataset(dataset)

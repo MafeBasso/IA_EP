@@ -167,10 +167,10 @@ def perceptron(dataset, fnet, eta = 0.1, threshold = 0.001):
             expected = Y.loc[i]
 
             obtained = fnet(net = sum(weights * input))
-            print(obtained)
-            print(expected)
+            # print(obtained)
+            # print(expected)
             error = expected - obtained
-            print(error)
+            # print(error)
             sqerror = sqerror + (error[0] ** 2)
             dE2 = 2 * error[0] * input * (-1)
 
@@ -178,9 +178,13 @@ def perceptron(dataset, fnet, eta = 0.1, threshold = 0.001):
         sqerror = sqerror / len(X.index)
     return weights
 
-def perceptron_test(x, weights, fnet = f):
+def perceptron_test_1(x, weights, fnet = f):
     x.append(1)
     return f(net = sum(weights * x))
+
+def perceptron_test_2(x, weights, fnet = f):
+    x.append(1)
+    return f2(net = sum(weights * x))
 
 # Lê e imprime o dataset original
 # print_dataset(dataset)
@@ -189,32 +193,32 @@ def perceptron_test(x, weights, fnet = f):
 def test_1(dataset, test):
     print(test)
     weights = perceptron(dataset, f)
-    print("[0,0] = " + str(perceptron_test([0, 0], weights)))
-    print("[0,1] = " + str(perceptron_test([0, 1], weights)))
-    print("[1,0] = " + str(perceptron_test([1, 0], weights)))
-    print("[1,1] = " + str(perceptron_test([1, 1], weights)))
+    print("[0,0] = " + str(perceptron_test_1([0, 0], weights)))
+    print("[0,1] = " + str(perceptron_test_1([0, 1], weights)))
+    print("[1,0] = " + str(perceptron_test_1([1, 0], weights)))
+    print("[1,1] = " + str(perceptron_test_1([1, 1], weights)))
     print()
 
 def test_2(dataset):
     print("Colors")
     weights = perceptron(dataset, f2)
-    print(weights)
-    print("[-1, -1, -1, -1] = " + str(perceptron_test([-1, -1, -1, -1], weights, f2)))
-    print("[-1, -1, -1, 1] = " + str(perceptron_test([-1, -1, -1, 1], weights, f2)))
-    print("[-1, -1, 1, -1] = " + str(perceptron_test([-1, -1, 1, -1], weights, f2)))
-    print("[-1, -1, 1, 1] = " + str(perceptron_test([-1, -1, 1, 1], weights, f2)))
-    print("[-1, 1, -1, -1] = " + str(perceptron_test([-1, 1, -1, -1], weights, f2)))
-    print("[-1, 1, -1, 1] = " + str(perceptron_test([-1, 1, -1, 1], weights, f2)))
-    print("[-1, 1, 1, -1] = " + str(perceptron_test([-1, 1, 1, -1], weights, f2)))
-    print("[-1, 1, 1, 1] = " + str(perceptron_test([-1, 1, 1, 1], weights, f2)))
-    print("[1, -1, -1, -1] = " + str(perceptron_test([1, -1, -1, -1], weights, f2)))
-    print("[1, -1, -1, 1] = " + str(perceptron_test([1, -1, -1, 1], weights, f2)))
-    print("[1, -1, 1, -1] = " + str(perceptron_test([1, -1, 1, -1], weights, f2)))
-    print("[1, -1, 1, 1] = " + str(perceptron_test([1, -1, 1, 1], weights, f2)))
-    print("[1, 1, -1, -1] = " + str(perceptron_test([1, 1, -1, -1], weights, f2)))
-    print("[1, 1, -1, 1] = " + str(perceptron_test([1, 1, -1, 1], weights, f2)))
-    print("[1, 1, 1, -1] = " + str(perceptron_test([1, 1, 1, -1], weights, f2)))
-    print("[1, 1, 1, 1] = " + str(perceptron_test([1, 1, 1, 1], weights, f2)))
+    # print(weights)
+    print("[-1, -1, -1, -1] = " + str(perceptron_test_2([-1, -1, -1, -1], weights, f2)))
+    print("[-1, -1, -1, 1] = " + str(perceptron_test_2([-1, -1, -1, 1], weights, f2)))
+    print("[-1, -1, 1, -1] = " + str(perceptron_test_2([-1, -1, 1, -1], weights, f2)))
+    print("[-1, -1, 1, 1] = " + str(perceptron_test_2([-1, -1, 1, 1], weights, f2)))
+    print("[-1, 1, -1, -1] = " + str(perceptron_test_2([-1, 1, -1, -1], weights, f2)))
+    print("[-1, 1, -1, 1] = " + str(perceptron_test_2([-1, 1, -1, 1], weights, f2)))
+    print("[-1, 1, 1, -1] = " + str(perceptron_test_2([-1, 1, 1, -1], weights, f2)))
+    print("[-1, 1, 1, 1] = " + str(perceptron_test_2([-1, 1, 1, 1], weights, f2)))
+    print("[1, -1, -1, -1] = " + str(perceptron_test_2([1, -1, -1, -1], weights, f2)))
+    print("[1, -1, -1, 1] = " + str(perceptron_test_2([1, -1, -1, 1], weights, f2)))
+    print("[1, -1, 1, -1] = " + str(perceptron_test_2([1, -1, 1, -1], weights, f2)))
+    print("[1, -1, 1, 1] = " + str(perceptron_test_2([1, -1, 1, 1], weights, f2)))
+    print("[1, 1, -1, -1] = " + str(perceptron_test_2([1, 1, -1, -1], weights, f2)))
+    print("[1, 1, -1, 1] = " + str(perceptron_test_2([1, 1, -1, 1], weights, f2)))
+    print("[1, 1, 1, -1] = " + str(perceptron_test_2([1, 1, 1, -1], weights, f2)))
+    print("[1, 1, 1, 1] = " + str(perceptron_test_2([1, 1, 1, 1], weights, f2)))
 
 dataset = read_dataset("Dataset_OR.csv")
 test_1(dataset, "OR")

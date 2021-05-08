@@ -9,7 +9,8 @@ def read_dataset(dataset):
 def fnet_logical(net, threshold = 0.5):
     return 1 if net >= threshold else 0
 
-def f2(net, threshold = 0.1):
+# Cálculo de fnet para os datasets de imagem
+def fnet_images(net, threshold = 0.1):
     return 1 if net >= threshold else -1
 
 # Treino do Perceptron
@@ -26,6 +27,8 @@ def perceptron_training(dataset, fnet, eta = 0.1, threshold = 1e-3):
 
     cycles = 0
     sqerror = 2 * threshold
+
+    # quebramos o while quando o erro for menor que o mínimo aceito
     while (sqerror > threshold):
         cycles += 1
         sqerror = 0

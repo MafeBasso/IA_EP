@@ -1,12 +1,14 @@
 import random
+
+import numpy
 import pandas
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def read_dataset():
-    return pandas.read_csv("Dataset_original.csv")
+def read_dataset(dataset):
+    return pandas.read_csv(dataset)
 
 
 separator = "--------------------------------------------------------------------------"
@@ -144,68 +146,81 @@ def knn(dataset, query, distance_type, k=1, p=2):
 
     return unique_classes[votes_per_class.index(max(votes_per_class))]
 
+def f(net, threshold = 0.5):
+    return 1 if net >= threshold else 0
 
-def get_test_list(dataset, size):
-    global list_last_position
-    list_last_position = len(dataset) - 1
-    global list_first_position
-    list_first_position = list_last_position - test_list_size + 1
-    test_list = dataset.drop(dataset[dataset.index < len(dataset) - size].index)
-    return test_list
+def f2(net, threshold = 0.1):
+    return 1 if net >= threshold else -1
 
+def perceptron(dataset, fnet, eta = 0.1, threshold = 0.001):
+    columns = dataset.columns.size
+    X = dataset.iloc[:,:-1]
+    Y = dataset.iloc[:,columns - 1:columns]
+    weights = numpy.random.uniform(-0.5, 0.5, X.columns.size + 1)
 
-def test(test_list, total_tests, k, choosen_distance, p=0):
-    if total_tests > len(test_list):
-        total_tests = len(test_list)
-        print("total_tests > test_list.size -> total_tests = test_list.size")
-    hits = 0
-    errors = 0
-    print("Test: " + str(total_tests) + " tests using k = " + str(k) + " and " + str(choosen_distance) + " distance")
-    random_number = random.sample(test_list.index.tolist(), total_tests)
-    for i in range(total_tests):
-        # Selecao aleatoria de linha pra teste
-        query = test_list.loc[random_number[i]].tolist()
-        query.pop(len(query) - 1)
-        if test_list.loc[random_number[i]][13] == knn(dataset, query, choosen_distance, k, p):
-            hits += 1
-        else:
-            errors += 1
-    print("Hits = " + str(hits) + " - Errors: " + str(errors) + " - Average: " + str(
-        (hits / (hits + errors)) * 100) + "%")
-    print()
+    sqerror = 2 * threshold
+    while (sqerror > threshold):
+        sqerror = 0
+        for i in range(len(X.index)):
+            input = X.loc[i]
+            input["theta"] = 1
+            expected = Y.loc[i]
 
+            obtained = fnet(net = sum(weights * input))
+            print(obtained)
+            print(expected)
+            error = expected - obtained
+            print(error)
+            sqerror = sqerror + (error[0] ** 2)
+            dE2 = 2 * error[0] * input * (-1)
+
+            weights = weights - eta * dE2
+        sqerror = sqerror / len(X.index)
+    return weights
+
+def perceptron_test(x, weights, fnet = f):
+    x.append(1)
+    return f(net = sum(weights * x))
 
 # Lê e imprime o dataset original
-dataset = read_dataset()
+# print_dataset(dataset)
+# print("weights = " + str(weights))
 
-# Faz o pré-processamento dos dados
-dataset = pre_processing()
+def test_1(dataset, test):
+    print(test)
+    weights = perceptron(dataset, f)
+    print("[0,0] = " + str(perceptron_test([0, 0], weights)))
+    print("[0,1] = " + str(perceptron_test([0, 1], weights)))
+    print("[1,0] = " + str(perceptron_test([1, 0], weights)))
+    print("[1,1] = " + str(perceptron_test([1, 1], weights)))
+    print()
 
-# Normaliza o dataset usando a re-escala linear e imprime ele
-dataset = normalize()
+def test_2(dataset):
+    print("Colors")
+    weights = perceptron(dataset, f2)
+    print(weights)
+    print("[-1, -1, -1, -1] = " + str(perceptron_test([-1, -1, -1, -1], weights, f2)))
+    print("[-1, -1, -1, 1] = " + str(perceptron_test([-1, -1, -1, 1], weights, f2)))
+    print("[-1, -1, 1, -1] = " + str(perceptron_test([-1, -1, 1, -1], weights, f2)))
+    print("[-1, -1, 1, 1] = " + str(perceptron_test([-1, -1, 1, 1], weights, f2)))
+    print("[-1, 1, -1, -1] = " + str(perceptron_test([-1, 1, -1, -1], weights, f2)))
+    print("[-1, 1, -1, 1] = " + str(perceptron_test([-1, 1, -1, 1], weights, f2)))
+    print("[-1, 1, 1, -1] = " + str(perceptron_test([-1, 1, 1, -1], weights, f2)))
+    print("[-1, 1, 1, 1] = " + str(perceptron_test([-1, 1, 1, 1], weights, f2)))
+    print("[1, -1, -1, -1] = " + str(perceptron_test([1, -1, -1, -1], weights, f2)))
+    print("[1, -1, -1, 1] = " + str(perceptron_test([1, -1, -1, 1], weights, f2)))
+    print("[1, -1, 1, -1] = " + str(perceptron_test([1, -1, 1, -1], weights, f2)))
+    print("[1, -1, 1, 1] = " + str(perceptron_test([1, -1, 1, 1], weights, f2)))
+    print("[1, 1, -1, -1] = " + str(perceptron_test([1, 1, -1, -1], weights, f2)))
+    print("[1, 1, -1, 1] = " + str(perceptron_test([1, 1, -1, 1], weights, f2)))
+    print("[1, 1, 1, -1] = " + str(perceptron_test([1, 1, 1, -1], weights, f2)))
+    print("[1, 1, 1, 1] = " + str(perceptron_test([1, 1, 1, 1], weights, f2)))
 
-# Mostra a análise exploratória dos dados
-# exploratory_analysis()
-correlation_matrix()
+dataset = read_dataset("Dataset_OR.csv")
+test_1(dataset, "OR")
 
-# Tipos de distancias implementadas e tamanho da lista de testes (obs: a lista de testes é removida do fim do dataset)
-distance_type = ["minkowski", "euclidian", "manhattan"]
-test_list_size = 100
+dataset = read_dataset("Dataset_AND.csv")
+test_1(dataset, "AND")
 
-# Cria a lista de testes a partir do dataset, removendo test_list_size elementos do fim do dataset
-testList = get_test_list(dataset, test_list_size)
-dataset = dataset.drop(dataset[dataset.index > len(dataset) - test_list_size].index)
-
-# Cria alguns testes alternando o número de testes, k e tipo de distância, avaliando a precisão do algoritmo
-# Assinatura da função de testes (Para usar a distância de minkowski, é necessário informar p):
-#   def test(testList, total_tests, k, choosen_distance, p = 0):
-
-test(testList, 1001, 1, distance_type[0], 3)
-test(testList, 10, 1, distance_type[1])
-test(testList, 10, 1, distance_type[2])
-test(testList, 10, 100, distance_type[0], 3)
-test(testList, 10, 100, distance_type[1])
-test(testList, 10, 100, distance_type[2])
-test(testList, 100, 100, distance_type[0], 3)
-test(testList, 100, 100, distance_type[1])
-test(testList, 100, 100, distance_type[2])
+dataset = read_dataset("Dataset_Colors.csv")
+test_2(dataset)

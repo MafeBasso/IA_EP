@@ -1,10 +1,36 @@
 import numpy
 import pandas
 import math
+import pickle
 
-# # Leitura do dataset
-# def read_dataset(dataset):
-#     return pandas.read_csv(dataset)
+# Leitura do dataset
+def read_dataset(dataset):
+    return pandas.read_csv(dataset)
+
+
+def pre_processing():
+    # Como apenas a coluna target possui strings, ela recebe um tratamento diferente
+    for column in dataset.columns:
+        if column == "target":
+            mode = dataset[column].mode()
+            for i in range(len(dataset)):
+                if dataset[column].at[i] == "":
+                    dataset[column].at[i] = mode
+        else:
+            mean = dataset[column].mean()
+            for i in range(len(dataset)):
+                if dataset[column].at[i] == 0.0:
+                    dataset[column].at[i] = mean
+    return dataset
+
+
+def normalize():
+    # Removemos a coluna target para fazer a normalização porque ela possui apenas strings
+    normalized = dataset.drop("target", 1)
+    normalized = ((normalized - normalized.min()) / (normalized.max() - normalized.min()))
+    normalized = normalized.join(dataset["target"])
+    return normalized
+
 
 # Cálculo de fnet
 def fnet(net):
@@ -73,131 +99,114 @@ class ModelForward:
         print("f_net_o_p = \n" + str(self.f_net_o_p))
         print()
 
+    def print_result(self):
+        print("Result = 0") if (self.f_net_o_p[0] < 0.5) else print("Result = 1")
 
-def create_model_forward(model, p):
+
+def test_model(model, p):
     p.append(1)
 
-    print("model.hidden_weights = \n" + str(model.hidden_weights))
-    print("p = \n" + str(p))
-    # Hidden Layer
-    temp = model.hidden_weights * p
-    print("temp = \n" + str(temp))
-    temp = sum(sum(temp))
-    print("temp = \n" + str(temp))
-    net_h_p = 0
-    for i in range(len(temp)):
-        net_h_p += temp[i]
-    print("net_h_p = \n" + str(net_h_p))
-    f_net_h_p = model.activation_function(sum(model.hidden_weights * p))
-    print(f_net_h_p)
+    # net Hidden Layer
+    net_h_p = [0] * model.hidden_layer
+    for i in range(len(net_h_p)):
+        net_h_p[i] = sum(model.hidden_weights[i] * p)
 
-    # Output Layer
-    f_net_h_p = numpy.c_[f_net_h_p, numpy.ones((len(f_net_h_p), 1))]
+    # f_net Hidden Layer
+    f_net_h_p = [0] * len(net_h_p)
+    for i in range(len(net_h_p)):
+        f_net_h_p[i] = model.activation_function(net_h_p[i])
 
-    net_o_p = model.output_weights * f_net_h_p
-    f_net_o_p = model.output_weights * f_net_h_p
+    f_net_h_p.append(1)
+
+    # net Output Layer
+    net_o_p = [0] * model.output_layer
+    for i in range(len(net_o_p)):
+        net_o_p[i] = sum(model.output_weights[i] * f_net_h_p)
+
+    # f_net Output Layer
+    f_net_o_p = [0] * len(net_o_p)
     for i in range(len(f_net_o_p)):
-        for j in range(len(f_net_o_p)):
-            f_net_o_p[i][j] = model.activation_function(f_net_o_p[i][j])
+        f_net_o_p[i] = model.activation_function(net_o_p[i])
 
     return ModelForward(net_h_p, f_net_h_p, net_o_p, f_net_o_p)
 
 
-model = create_model()
-model.print_model()
-model_forward = create_model_forward(model, [2, 2])
-model_forward.print_model()
+def backpropagation(model, dataset, eta = 0.1, threshold = 1e-1):
+    squared_error = 2 * threshold
+    cycles = 0
 
-# # Cálculo de fnet para os datasets de imagem
-# def fnet_images(net, threshold = 0.1):
-#     return 1 if net >= threshold else -1
-#
-# # Treino do Perceptron
-# def perceptron_training(dataset, fnet, eta = 0.1, threshold = 1e-3):
-#     # columns nos retorna o numero de colunas do dataset
-#     columns = dataset.columns.size
-#
-#     # selecionamos no training_dataset o nosso dataset excluindo a coluna de respostas e o expected values corresponde a coluna respostas
-#     training_dataset = dataset.iloc[:,:-1]
-#     expected_values = dataset.iloc[:,columns - 1:columns]
-#
-#     weights = numpy.random.uniform(-0.5, 0.5, training_dataset.columns.size + 1)
-#     print("Pesos iniciais: " + str(weights))
-#
-#     cycles = 0
-#     sqerror = 2 * threshold
-#
-#     # quebramos o while quando o erro for menor que o mínimo aceito
-#     while (sqerror > threshold):
-#         cycles += 1
-#         sqerror = 0
-#
-#         # iteramos o nosso dataset para calcular a fnet de cada teste
-#         for i in range(len(training_dataset.index)):
-#             input = training_dataset.loc[i]
-#
-#             # correcao do tamanho do input
-#             input["theta"] = 1
-#
-#             expected = expected_values.loc[i]
-#
-#             # obtemos a fnet para os valores selecionados do dataset nesta iteração
-#             obtained = fnet(net = sum(weights * input))
-#
-#             error = expected - obtained
-#             sqerror = sqerror + (error[0] ** 2)
-#             dE2 = 2 * error[0] * input * (-1)
-#
-#             weights = weights - eta * dE2
-#
-#         # normalizacao quadratica do erro
-#         sqerror = sqerror / len(training_dataset.index)
-#     print("Pesos finais: " + str(weights.to_numpy()))
-#     print("Épocas: " + str(cycles))
-#     return weights
-#
-# def perceptron_test_logicals(input, weights, fnet = fnet_logical):
-#     input.append(1)
-#     return fnet_logical(net = sum(weights * input))
-#
-# def perceptron_test_images(input, weights, fnet = fnet_logical):
-#     input.append(1)
-#     return "Escuro (-1)" if fnet_images(net = sum(weights * input)) == -1 else "Claro (1)"
-#
-# def test_logicals(dataset, test):
-#     print(test)
-#     weights = perceptron_training(dataset, fnet_logical)
-#     print("[0,0] = " + str(perceptron_test_logicals([0, 0], weights)))
-#     print("[0,1] = " + str(perceptron_test_logicals([0, 1], weights)))
-#     print("[1,0] = " + str(perceptron_test_logicals([1, 0], weights)))
-#     print("[1,1] = " + str(perceptron_test_logicals([1, 1], weights)))
-#     print()
-#
-# def test_images(dataset):
-#     print("Colors")
-#     weights = perceptron_training(dataset, fnet_images)
-#     print("[-1, -1, -1, -1] = " + str(perceptron_test_images([-1, -1, -1, -1], weights, fnet_images)))
-#     print("[-1, -1, -1, 1] = " + str(perceptron_test_images([-1, -1, -1, 1], weights, fnet_images)))
-#     print("[-1, -1, 1, -1] = " + str(perceptron_test_images([-1, -1, 1, -1], weights, fnet_images)))
-#     print("[-1, -1, 1, 1] = " + str(perceptron_test_images([-1, -1, 1, 1], weights, fnet_images)))
-#     print("[-1, 1, -1, -1] = " + str(perceptron_test_images([-1, 1, -1, -1], weights, fnet_images)))
-#     print("[-1, 1, -1, 1] = " + str(perceptron_test_images([-1, 1, -1, 1], weights, fnet_images)))
-#     print("[-1, 1, 1, -1] = " + str(perceptron_test_images([-1, 1, 1, -1], weights, fnet_images)))
-#     print("[-1, 1, 1, 1] = " + str(perceptron_test_images([-1, 1, 1, 1], weights, fnet_images)))
-#     print("[1, -1, -1, -1] = " + str(perceptron_test_images([1, -1, -1, -1], weights, fnet_images)))
-#     print("[1, -1, -1, 1] = " + str(perceptron_test_images([1, -1, -1, 1], weights, fnet_images)))
-#     print("[1, -1, 1, -1] = " + str(perceptron_test_images([1, -1, 1, -1], weights, fnet_images)))
-#     print("[1, -1, 1, 1] = " + str(perceptron_test_images([1, -1, 1, 1], weights, fnet_images)))
-#     print("[1, 1, -1, -1] = " + str(perceptron_test_images([1, 1, -1, -1], weights, fnet_images)))
-#     print("[1, 1, -1, 1] = " + str(perceptron_test_images([1, 1, -1, 1], weights, fnet_images)))
-#     print("[1, 1, 1, -1] = " + str(perceptron_test_images([1, 1, 1, -1], weights, fnet_images)))
-#     print("[1, 1, 1, 1] = " + str(perceptron_test_images([1, 1, 1, 1], weights, fnet_images)))
-#
-# dataset = read_dataset("Dataset_OR.csv")
-# test_logicals(dataset, "OR")
-#
-# dataset = read_dataset("Dataset_AND.csv")
-# test_logicals(dataset, "AND")
-#
-# dataset = read_dataset("Dataset_Colors.csv")
-# test_images(dataset)
+    while (squared_error > threshold):
+        squared_error = 0
+
+        for i in range(len(dataset)):
+            x_p = dataset.to_numpy()[i][:model.input_layer].tolist()
+            y_p = dataset.to_numpy()[i][model.input_layer:dataset.columns.size]
+
+            tested_model = test_model(model, x_p)
+            obtained_value_p = tested_model.f_net_o_p
+
+            # Error calculation
+            error = y_p - obtained_value_p
+            squared_error += sum(error ** 2)
+
+            # Training output layer
+            delta_o_p = [0] * len(tested_model.f_net_o_p)
+            for j in range(len(delta_o_p)):
+                delta_o_p[j] = error[j] * model.d_activation_function(tested_model.f_net_o_p[j])
+
+            # Training hidden layer
+            w_o_k = [0] * len(tested_model.f_net_o_p)
+            delta_h_p = [0] * len(tested_model.f_net_o_p)
+            for j in range(len(delta_h_p)):
+                w_o_k[j] = model.output_weights[j][:model.hidden_layer].tolist()
+                delta_h_p[j] = delta_o_p[j] * numpy.array(w_o_k[j]) * model.d_activation_function(tested_model.f_net_h_p[j])
+
+            # Training
+            for j in range(len(delta_o_p)):
+                model.output_weights[j] += eta * (delta_o_p[j] * numpy.array(tested_model.f_net_h_p))
+
+            for j in range(len(delta_h_p)):
+                model.hidden_weights[j] += eta * numpy.multiply(numpy.array(delta_h_p).T, x_p)[j]
+
+        squared_error /= len(dataset)
+        cycles += 1
+        if (cycles % 10000 == 0):
+            print(squared_error)
+
+    print()
+    return model, cycles
+
+
+def save_trained_model(model):
+    with open("model.dat", "wb") as model_file:
+        pickle.dump(model, model_file)
+
+def load_trained_model():
+    with open("model.dat", "rb") as model_file:
+        return pickle.load(model_file)
+
+
+# Lê e imprime o dataset original
+dataset = read_dataset("Dataset_original.csv")
+
+# Faz o pré-processamento dos dados
+dataset = pre_processing()
+
+# Normaliza o dataset usando a re-escala linear e imprime ele
+dataset = normalize()
+
+model = create_model(2, 2, 1)
+model, cycles = backpropagation(model, dataset)
+save_trained_model(model)
+
+model = load_trained_model()
+
+tested_model = test_model(model, [0, 0])
+tested_model.print_result()
+tested_model = test_model(model, [1, 0])
+tested_model.print_result()
+tested_model = test_model(model, [0, 1])
+tested_model.print_result()
+tested_model = test_model(model, [1, 1])
+tested_model.print_result()
+

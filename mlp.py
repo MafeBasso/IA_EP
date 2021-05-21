@@ -11,7 +11,7 @@ def read_dataset(dataset):
 def pre_processing():
     # Como apenas a coluna target possui strings, ela recebe um tratamento diferente
     for column in dataset.columns:
-        if column == "target":
+        if column == "still" or column == "car" or column == "train" or column == "bus" or column == "walking":
             mode = dataset[column].mode()
             for i in range(len(dataset)):
                 if dataset[column].at[i] == "":
@@ -24,11 +24,30 @@ def pre_processing():
     return dataset
 
 
-def normalize():
+def normalize(dataset, classes):
     # Removemos a coluna target para fazer a normalização porque ela possui apenas strings
-    normalized = dataset.drop("target", 1)
-    normalized = ((normalized - normalized.min()) / (normalized.max() - normalized.min()))
-    normalized = normalized.join(dataset["target"])
+    # dataset_values = dataset[:len(dataset) - classes]
+    dataset_attributes = dataset.drop(["still", "car", "train", "bus", "walking"], axis = 1)
+    dataset_classes = dataset.drop([
+        "time",
+        "accelerometer#mean",
+        "accelerometer#min",
+        "accelerometer#max",
+        "accelerometer#std",
+        "gyroscope#mean",
+        "gyroscope#min",
+        "gyroscope#max",
+        "gyroscope#std",
+        "sound#mean",
+        "sound#min",
+        "sound#max",
+        "sound#std"],
+        axis = 1)
+    normalized = ((dataset_attributes - dataset_attributes.min()) / (dataset_attributes.max() - dataset_attributes.min()))
+    normalized = numpy.array(normalized)
+    dataset_classes = numpy.array(dataset_classes)
+    dataset = numpy.append(normalized, dataset_classes, axis = 1)
+    print(normalized)
     return normalized
 
 
@@ -36,9 +55,11 @@ def normalize():
 def fnet(net):
     return (1 / (1 + math.exp(-net)))
 
+
 # Cálculo de fnet'
 def d_fnet(f_net):
     return (f_net * (1 - f_net))
+
 
 class Model:
     def __init__(
@@ -49,8 +70,10 @@ class Model:
             activation_function,
             d_activation_function,
             hidden_weights,
-            output_weights
+            output_weights,
+            cycles = 0
     ):
+        self.cycles = cycles
         self.input_layer = input_layer
         self.hidden_layer = hidden_layer
         self.output_layer = output_layer
@@ -174,39 +197,69 @@ def backpropagation(model, dataset, eta = 0.1, threshold = 1e-1):
             print(squared_error)
 
     print()
-    return model, cycles
+    model.cycles = cycles
+    save_trained_model(model)
+    return model
 
 
 def save_trained_model(model):
     with open("model.dat", "wb") as model_file:
         pickle.dump(model, model_file)
 
-def load_trained_model():
-    with open("model.dat", "rb") as model_file:
-        return pickle.load(model_file)
+
+def create(input_layer = 2, hidden_layer = 2, output_layer = 1, activation_function = fnet, d_activation_function = d_fnet):
+    model = create_model(input_layer, hidden_layer, output_layer, activation_function, d_activation_function)
+    return backpropagation(model, dataset)
+
+
+def load_trained_model(recreate_model = False, input_layer = 2, hidden_layer = 2, output_layer = 1, activation_function = fnet, d_activation_function = d_fnet):
+    if recreate_model:
+        return create(input_layer, hidden_layer, output_layer, activation_function, d_activation_function)
+    else:
+        try:
+            with open("model.dat", "rb") as model_file:
+                return pickle.load(model_file)
+        except IOError:
+            return create(input_layer, hidden_layer, output_layer, activation_function, d_activation_function)
+        finally:
+            model_file.close()
+
+
+def get_training_and_test(dataset, percentage, lines_removed = 0):
+    if lines_removed != 0:
+        dataset = dataset[:len(dataset) - lines_removed]
+
+    x = math.floor(len(dataset) * percentage)
+    return dataset[:x], dataset[x:len(dataset)]
+
+
+def calculate_accuracy(model, test_dataset):
+    hits = 0
+    errors = 0
+    for i in range(len(test_dataset)):
+        result = test_model(model, test_dataset[i][:len(test_dataset) - 1])
+        if result == test_dataset[i][len(dataset) - 1:len(dataset)]:
+            hits += 1
+        else:
+            errors += 1
+    accuracy = hits / (hits + errors) * 100
+    print("Accuracy: " + str(accuracy) + "%")
 
 
 # Lê e imprime o dataset original
-dataset = read_dataset("Dataset_original.csv")
+dataset = read_dataset(dataset = "Dataset_TMD_MLP.csv")
 
 # Faz o pré-processamento dos dados
 dataset = pre_processing()
 
-# Normaliza o dataset usando a re-escala linear e imprime ele
-dataset = normalize()
+# Normaliza o dataset usando a re-escala linear
+dataset = normalize(dataset, classes = 5)
 
-model = create_model(2, 2, 1)
-model, cycles = backpropagation(model, dataset)
-save_trained_model(model)
+# Obtém o dataset de treino e o dataset de teste com base na porcentagem escolhida
+training_dataset, test_dataset = get_training_and_test(dataset = dataset, percentage = 0.7)
 
-model = load_trained_model()
+# Carrega o modelo já treinado, ou treina um novo caso ainda não exista um modelo
+model = load_trained_model(recreate_model = False, input_layer = 13, hidden_layer = 3, output_layer = 5)
 
-tested_model = test_model(model, [0, 0])
-tested_model.print_result()
-tested_model = test_model(model, [1, 0])
-tested_model.print_result()
-tested_model = test_model(model, [0, 1])
-tested_model.print_result()
-tested_model = test_model(model, [1, 1])
-tested_model.print_result()
-
+# Valida o dataset de testes
+calculate_accuracy(model, test_dataset)

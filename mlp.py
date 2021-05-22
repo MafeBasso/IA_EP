@@ -171,7 +171,7 @@ def test_model(model, p):
     return ModelForward(net_h_p, f_net_h_p, net_o_p, f_net_o_p)
 
 
-def backpropagation(model, dataset, eta = 0.1, threshold = 0.65):
+def backpropagation(model, dataset, eta = 0.1, threshold = 1e-3):
     print("Initial Hidden Weights = ")
     print(model.hidden_weights)
     print("Initial Output Weights = ")
@@ -274,7 +274,7 @@ def calculate_accuracy(model, test_dataset, classes):
     errors = 0
     for i in range(test_dataset.first_valid_index(), test_dataset.last_valid_index() + 1):
         test_tuple = numpy.array(test_dataset.loc[i])
-        result = test_model(model, test_tuple[:test_dataset.first_valid_index() + len(test_dataset) - classes].tolist())
+        result = test_model(model, test_tuple[:test_dataset.columns.size - classes].tolist())
         if get_result(result.f_net_o_p, test_tuple[classes - 1:]):
             hits += 1
         else:
@@ -293,10 +293,10 @@ dataset = pre_processing(dataset)
 dataset = normalize(dataset, classes = 5)
 
 # Obtém o dataset de treino e o dataset de teste com base na porcentagem escolhida
-training_dataset, test_dataset = get_training_and_test(dataset = dataset, percentage = 0.7, lines_removed = 5884)
+training_dataset, test_dataset = get_training_and_test(dataset = dataset, percentage = 0.7)
 
 # Carrega o modelo já treinado, ou treina um novo caso ainda não exista um modelo
-model = load_trained_model(input_layer = 4, hidden_layer = 5, output_layer = 5, recreate_model = False)
+model = load_trained_model(input_layer = 4, hidden_layer = 5, output_layer = 5, recreate_model = True)
 
 # Valida o dataset de testes
 calculate_accuracy(model, test_dataset, classes = 5)

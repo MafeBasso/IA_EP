@@ -88,7 +88,7 @@ def normalize(dataset):
 
 
 # Separa o dataset em treino e testes
-def get_training_and_test(dataset, percentage, lines_removed=0):
+def get_training_and_test_datasets(dataset, percentage, lines_removed=0):
     if lines_removed != 0:
         dataset = dataset[:len(dataset) - lines_removed]
 
@@ -137,35 +137,6 @@ def create_model(input_layer, hidden_layer, output_layer, activation_function=fn
     hidden_weights = numpy.random.uniform(-0.5, 0.5, (hidden_layer, input_layer + 1))
     output_weights = numpy.random.uniform(-0.5, 0.5, (output_layer, hidden_layer + 1))
     return Model(input_layer, hidden_layer, output_layer, activation_function, d_activation_function, hidden_weights, output_weights)
-
-
-# Testa uma entrada p
-def test_model(model, p):
-    p.append(1)
-
-    # net Hidden Layer
-    net_h_p = [0] * model.hidden_layer
-    for i in range(len(net_h_p)):
-        net_h_p[i] = sum(model.hidden_weights[i] * p)
-
-    # f_net Hidden Layer
-    f_net_h_p = [0] * len(net_h_p)
-    for i in range(len(net_h_p)):
-        f_net_h_p[i] = model.activation_function(net_h_p[i])
-
-    f_net_h_p.append(1)
-
-    # net Output Layer
-    net_o_p = [0] * model.output_layer
-    for i in range(len(net_o_p)):
-        net_o_p[i] = sum(model.output_weights[i] * f_net_h_p)
-
-    # f_net Output Layer
-    f_net_o_p = [0] * len(net_o_p)
-    for i in range(len(f_net_o_p)):
-        f_net_o_p[i] = model.activation_function(net_o_p[i])
-
-    return ModelForward(net_h_p, f_net_h_p, net_o_p, f_net_o_p)
 
 
 # Atualização dos pesos com base nas entradas
@@ -228,6 +199,35 @@ def backpropagation(model, dataset, eta=0.1, threshold=1e-3):
     return model
 
 
+# Testa uma entrada p
+def test_model(model, p):
+    p.append(1)
+
+    # net Hidden Layer
+    net_h_p = [0] * model.hidden_layer
+    for i in range(len(net_h_p)):
+        net_h_p[i] = sum(model.hidden_weights[i] * p)
+
+    # f_net Hidden Layer
+    f_net_h_p = [0] * len(net_h_p)
+    for i in range(len(net_h_p)):
+        f_net_h_p[i] = model.activation_function(net_h_p[i])
+
+    f_net_h_p.append(1)
+
+    # net Output Layer
+    net_o_p = [0] * model.output_layer
+    for i in range(len(net_o_p)):
+        net_o_p[i] = sum(model.output_weights[i] * f_net_h_p)
+
+    # f_net Output Layer
+    f_net_o_p = [0] * len(net_o_p)
+    for i in range(len(f_net_o_p)):
+        f_net_o_p[i] = model.activation_function(net_o_p[i])
+
+    return ModelForward(net_h_p, f_net_h_p, net_o_p, f_net_o_p)
+
+
 # Verifica se o algoritmo acertou ou não a classe esperada
 def get_result(fnets, tests):
     tests = tests.tolist()
@@ -251,6 +251,8 @@ def calculate_accuracy(model, test_dataset, classes):
     print("Accuracy: " + str(accuracy) + "%")
 
 
+# Início do programa
+
 # Lê e imprime o dataset original
 dataset = read_dataset(dataset="Dataset_TMD_MLP.csv")
 
@@ -261,7 +263,7 @@ dataset = pre_processing(dataset)
 dataset = normalize(dataset)
 
 # Obtém o dataset de treino e o dataset de teste com base na porcentagem escolhida
-training_dataset, test_dataset = get_training_and_test(dataset=dataset, percentage=0.7)
+training_dataset, test_dataset = get_training_and_test_datasets(dataset=dataset, percentage=0.7)
 
 # Carrega o modelo já treinado, ou treina um novo caso ainda não exista um modelo
 model = load_trained_model(input_layer=4, hidden_layer=5, output_layer=5, recreate_model=True)

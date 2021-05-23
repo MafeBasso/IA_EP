@@ -76,7 +76,7 @@ def pre_processing(dataset):
 
 
 # Normalização do dataset
-def normalize(dataset, classes):
+def normalize(dataset):
     dataset_attributes = dataset.drop(["still", "car", "train", "bus", "walking"], axis=1)
     dataset_classes = dataset.drop(["time", "accelerometer#mean", "gyroscope#mean", "sound#mean"], axis=1)
     normalized = ((dataset_attributes - dataset_attributes.min()) / (dataset_attributes.max() - dataset_attributes.min()))
@@ -113,7 +113,7 @@ def save_trained_model(model):
 
 
 # Carrega o dataset de um arquivo caso ele exista ou cria um novo caso ele não exista ou caso recreate_model = True
-def load_trained_model(input_layer, hidden_layer, output_layer, recreate_model = False, activation_function = fnet, d_activation_function = d_fnet):
+def load_trained_model(input_layer, hidden_layer, output_layer, recreate_model=False, activation_function=fnet, d_activation_function=d_fnet):
     if recreate_model:
         return create(input_layer, hidden_layer, output_layer, activation_function, d_activation_function)
     else:
@@ -124,6 +124,7 @@ def load_trained_model(input_layer, hidden_layer, output_layer, recreate_model =
             return create(input_layer, hidden_layer, output_layer, activation_function, d_activation_function)
         finally:
             model_file.close()
+
 
 # Cria o modelo e aplica o backpropagation
 def create(input_layer, hidden_layer, output_layer, activation_function=fnet, d_activation_function=d_fnet):
@@ -168,7 +169,7 @@ def test_model(model, p):
 
 
 # Atualização dos pesos com base nas entradas
-def backpropagation(model, dataset, eta=0.1, threshold=0.6):
+def backpropagation(model, dataset, eta=0.1, threshold=1e-3):
     print("Initial Hidden Weights = ")
     print(model.hidden_weights)
     print("Initial Output Weights = ")
@@ -178,7 +179,7 @@ def backpropagation(model, dataset, eta=0.1, threshold=0.6):
     squared_error = 2 * threshold
     cycles = 0
 
-    while (squared_error > threshold):
+    while squared_error > threshold:
         squared_error = 0
 
         for i in range(len(dataset)):
@@ -207,7 +208,7 @@ def backpropagation(model, dataset, eta=0.1, threshold=0.6):
 
             # Training
             for j in range(len(delta_o_p)):
-                model.output_weights[j] += eta * ( delta_o_p[j] * numpy.array(tested_model.f_net_h_p))
+                model.output_weights[j] += eta * (delta_o_p[j] * numpy.array(tested_model.f_net_h_p))
 
             for j in range(len(delta_h_p)):
                 model.hidden_weights[j] += eta * numpy.multiply(numpy.array(delta_h_p), x_p)[j]

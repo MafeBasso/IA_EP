@@ -258,7 +258,7 @@ dataset = read_dataset(dataset="Dataset_TMD_MLP.csv")
 dataset = pre_processing(dataset)
 
 # Normaliza o dataset usando a re-escala linear
-dataset = normalize(dataset, classes=5)
+dataset = normalize(dataset)
 
 # Obtém o dataset de treino e o dataset de teste com base na porcentagem escolhida
 training_dataset, test_dataset = get_training_and_test(dataset=dataset, percentage=0.7)

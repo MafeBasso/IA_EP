@@ -174,8 +174,7 @@ def backpropagation(model, dataset, eta=0.1, threshold=1e-3):
             delta_h_p = [0] * len(tested_model.f_net_o_p)
             for j in range(len(delta_h_p)):
                 w_o_k[j] = model.output_weights[j][:model.hidden_layer].tolist()
-                delta_h_p[j] = delta_o_p[j] * numpy.array(w_o_k[j]) * model.d_activation_function(
-                    tested_model.f_net_h_p[j])
+                delta_h_p[j] = delta_o_p[j] * numpy.array(w_o_k[j]) * model.d_activation_function(tested_model.f_net_h_p[j])
 
             # Training
             for j in range(len(delta_o_p)):

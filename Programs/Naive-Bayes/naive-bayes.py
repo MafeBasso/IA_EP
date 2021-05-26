@@ -8,74 +8,49 @@ def read_dataset(dataset):
     return pandas.read_csv(dataset)
 
 
-def naive_bayes(dataset, query, minimal_prob = 1e-7):
-    class_id = dataset.columns.size # seleciona o id da coluna das classes do dataset
-    # print(class_id)
-
-    classes = dataset[dataset.columns[class_id - 1]].unique()   # seleciona as classes únicas da coluna de classes do dataset
-    # print(classes)
-
-    probabilities = [0] * classes.size  # vetor inicializado com 1 com tamanho do número de classes
-    # print(probabilities)
+# Algoritmo Naive Bayes
+def naive_bayes(dataset, query, minimal_prob=1e-7):
+    class_column = dataset.columns.size  # seleciona a coluna das classes do dataset
+    classes = dataset[dataset.columns[class_column - 1]].unique()  # seleciona as classes únicas da coluna de classes do dataset
+    probabilities = [0] * classes.size  # inicia com 0 um vetor de probabilidades com tamanho classes.size
 
     for i in range(classes.size):
-        # Aplicar argmax para cada classe
-        # log(v1) = log(Produtório_j(P(Sim|Atrr_j) * P(Sim))
-        #         = log(P(Sim|Atrr_1)) + ... + log(P(Sim|Atrr_j)) + log(P(Sim))
-        # log(v2) = log(Produtório_j(P(Não|Atrr_j) * P(Não))
-        #         = log(P(Não|Atrr_1)) + ... + log(P(Não|Atrr_j)) + log(P(Não))
-        # exp(log(v1)) = v1
-        # exp(log(v2)) = v2
+        class_probability = sum(dataset[dataset.columns[class_column - 1]] == classes[i]) / len(dataset)  # probabilidade da classe iterada
+        probabilities[i] += math.log(class_probability)  # aplica o log na probabilidade da classe iterada para evitar convergência à zero em casos com muitas classes
 
-        # print(dataset[dataset.columns[class_id - 1]]) # mostra a ultima coluna
-        # print(classes[i]) # mostra a classe sendo avaliada
-        # print(sum(dataset[dataset.columns[class_id - 1]] == classes[i])) # mostra quantas vezes a classe avaliada aparece na ultima coluna
-        p_classe = sum(dataset[dataset.columns[class_id - 1]] == classes[i]) / len(dataset) # probabilidade de uma classe
-        # print(p_classe)
-
-        probabilities[i] += math.log(p_classe)
-        # print(probabilities[i])
-
-    # print(probabilities) # mostra a probabilidade de cada classe
-
-        # print(len(query))
         for j in range(len(query)):
-            attr_j = query[j]
-            # print("dataset[dataset.columns[j]] = " + str(dataset[dataset.columns[j]]))
-            # print("attr_j = " + str(attr_j))
-            # print("dataset[dataset.columns[j]] == attr_j : " + str(dataset[dataset.columns[j]] == attr_j))
-            # print("dataset[dataset.columns[class_id - 1]] : " + str(dataset[dataset.columns[class_id - 1]]))
-            # print("classes[i] : " + str(classes[i]))
-            if attr_j != "?": # verifica se o atributo é válido
-                p_attr_j_classe = 0
-                p_classes = 0
+            if query[j] != "?":  # verifica se o atributo atual foi passado como parâmetro
+                probability_query_class = 0
+                probability_class = 0
+
                 for k in range(len(dataset)):
-                    # print(dataset.loc[k][dataset.columns[j]])
-                    if dataset.loc[k][dataset.columns[j]] == attr_j and dataset.loc[k][dataset.columns[class_id - 1]] == classes[i]:
-                        p_attr_j_classe += 1
-                    if dataset.loc[k][dataset.columns[class_id - 1]] == classes[i]:
-                        p_classes += 1
-                # print(str(attr_j) + " && " + str(classes[i]) + " = " + str(p_attr_j_classe))
-                # print(str(classes[i]) + " = " + str(p_classes))
-                if p_attr_j_classe == 0:
-                    p_attr_j_classe = minimal_prob
-                probabilities[i] += math.log(p_attr_j_classe / p_classes)
-        # print(p_attr_j_classe)
+                    if dataset.loc[k][dataset.columns[j]] == query[j] and dataset.loc[k][dataset.columns[class_column - 1]] == classes[i]:
+                        probability_query_class += 1  # conta quantas vezes o atributo atual aparece e se a classe dele é igual à classe atual
+                    if dataset.loc[k][dataset.columns[class_column - 1]] == classes[i]:
+                        probability_class += 1  # conta quantas vezes a classe atual aparece para oa tributo atual
 
+                if probability_query_class == 0:  # define uma probabilidade mínima para os casos em que a probabilidade for zero
+                    probability_query_class = minimal_prob
 
+                probabilities[i] += math.log(probability_query_class / probability_class)
+
+    # desfaz o log aplicando a exponencial e restaurando as probabilidades corretas
     probabilities[0] = math.exp(probabilities[0])
     probabilities[1] = math.exp(probabilities[1])
 
-    probabilities /= sum(numpy.array(probabilities))
+    probabilities /= sum(numpy.array(probabilities))  # normaliza as probabilidades
 
-    ret = list()
-    ret.append(classes)
-    ret.append(probabilities)
-    return ret
+    show_results(classes, probabilities)
 
 
-dataset = read_dataset(dataset="..\..\Datasets\Dataset_tenis.csv")
+def show_results(classes, probabilities):
+    print("Classes:")
+    for i in range(len(classes)):
+        print(str(classes[i]) + " = " + str(probabilities[i] * 100) + "%")
+
+
+dataset = read_dataset(dataset="Dataset_tenis.csv")
+
 query = ["?", "Quente", "Alta", "?"]
-classes, probabilities = naive_bayes(dataset=dataset, query=query)
-print(classes)
-print(probabilities)
+
+naive_bayes(dataset=dataset, query=query)

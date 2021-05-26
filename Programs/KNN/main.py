@@ -6,7 +6,7 @@ import seaborn as sns
 
 
 def read_dataset():
-    return pandas.read_csv("../../Datasets/Dataset_original.csv")
+    return pandas.read_csv("Dataset_original.csv")
 
 
 separator = "--------------------------------------------------------------------------"

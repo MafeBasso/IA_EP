@@ -62,4 +62,3 @@ querys = [["?", "Intermediária", "Normal", "?"],
           ["?", "Quente", "Alta", "?"]]
 
 tests(dataset, querys)
-

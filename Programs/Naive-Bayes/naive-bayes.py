@@ -35,8 +35,8 @@ def naive_bayes(dataset, query, minimal_prob=1e-7):
                 probabilities[i] += math.log(probability_query_class / probability_class)
 
     # desfaz o log aplicando a exponencial e restaurando as probabilidades corretas
-    probabilities[0] = math.exp(probabilities[0])
-    probabilities[1] = math.exp(probabilities[1])
+    for i in range(len(probabilities)):
+        probabilities[i] = math.exp(probabilities[i])
 
     probabilities /= sum(numpy.array(probabilities))  # normaliza as probabilidades
 
@@ -44,13 +44,21 @@ def naive_bayes(dataset, query, minimal_prob=1e-7):
 
 
 def show_results(classes, probabilities):
-    print("Classes:")
     for i in range(len(classes)):
         print(str(classes[i]) + " = " + str(probabilities[i] * 100) + "%")
 
 
+def tests(dataset, querys):
+    for i in range(len(querys)):
+        print("Query " + str(i))
+        naive_bayes(dataset=dataset, query=querys)
+
+
+#Inicio do Programa
+
 dataset = read_dataset(dataset="Dataset_tenis.csv")
 
-query = ["?", "Quente", "Alta", "?"]
+querys = [["?", "Intermediária", "Normal", "?"], ["?", "Quente", "Alta", "?"]]
 
-naive_bayes(dataset=dataset, query=query)
+tests(dataset, querys)
+

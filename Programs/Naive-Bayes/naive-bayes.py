@@ -58,7 +58,8 @@ def tests(dataset, querys):
 
 dataset = read_dataset(dataset="Dataset_tenis.csv")
 
-querys = [["?", "Intermediária", "Normal", "?"], ["?", "Quente", "Alta", "?"]]
+querys = [["?", "Intermediária", "Normal", "?"],
+          ["?", "Quente", "Alta", "?"]]
 
 tests(dataset, querys)
 
